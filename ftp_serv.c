@@ -82,8 +82,8 @@ void *clnt_connection(void *arg)
         {
             if(fname == NULL)
             {
-                system("ls>temp.txt");
-                fp = fopen("temp.txt", "r");
+                system("ls>.txt");
+                fp = fopen(".txt", "r");
 
                 while(1)
                 {
