@@ -11,7 +11,6 @@
 #define BUFSIZE 100
 
 void *clnt_connection(void *arg);
-void send_message(char *message, int len);
 void error_handling(char *message);
 
 int clnt_number = 0;
@@ -61,60 +60,69 @@ void *clnt_connection(void *arg)
 {
     int clnt_sock = (int)arg;
     int str_len = 0;
-    char message[BUFSIZE];
+    char clnt_msg[BUFSIZE];
+    // char serv_msg[BUFSIZE];
     char buf[BUFSIZE];
     char command[BUFSIZE];
     char *fname;
+    char tmp_name[20];
 
     FILE *fp;
 
-    while ((str_len = read(clnt_sock, message, sizeof(message))) != 0)
+    while ((str_len = read(clnt_sock, clnt_msg, sizeof(clnt_msg))) != 0)
     {
         // 초기화
         strcpy(command, "");
         fname = NULL;
+        sprintf(tmp_name, ".txt%d", clnt_sock);
 
         // 명령어와 인수 분리
-        strcpy(command, strtok(message, " "));
+        strcpy(command, strtok(clnt_msg, " "));
         fname = strtok(NULL, " ");
         // cd, ls, pwd, *hash 구현 예정
-        if(!strcmp(command, "ls"))
+        if (!strcmp(command, "ls"))
         {
-            if(fname == NULL)
+            // if(fname == NULL)
+            // {
+            sprintf(buf, "ls>%s", tmp_name);
+            system(buf);
+            fp = fopen(tmp_name, "r");
+
+            write(clnt_sock, "[파일 목록]", BUFSIZE);
+            write(clnt_sock, "=====================", BUFSIZE);
+            while (1)
             {
-                system("ls>.txt");
-                fp = fopen(".txt", "r");
+                strcpy(buf, "");
+                fscanf(fp, "%[^\n]\n", buf);
+                if (!strcmp(buf, ""))
+                    break;
 
-                while(1)
-                {
-                    strcpy(buf, "");
-                    fscanf(fp, "%[^\n]\n", buf);
-                    if(!strcmp(buf, ""))
-                        break;
-
-                    write(clnt_sock, buf, BUFSIZE);
-                }
-                
+                write(clnt_sock, buf, BUFSIZE);
             }
-            else 
-                write(clnt_sock, "ls 명령에는 인수를 줄 수 없습니다!", BUFSIZE);
+            write(clnt_sock, "=====================", BUFSIZE);
+            fclose(fp);
+            // remove(tmp_name);
+            
+            // }
+            // else
+            //     write(clnt_sock, "ls 명령에는 인수를 줄 수 없습니다!", BUFSIZE);
         }
-        else if(!strcmp(command, "get"))
+        else if (!strcmp(command, "get"))
         {
-            if(fname != NULL)
+            if (fname != NULL)
             {
                 write(clnt_sock, "get 명령 실행", BUFSIZE);
             }
-            else 
-                write(clnt_sock, "다운받은 파일명을 입력하세요!", BUFSIZE);
+            else
+                write(clnt_sock, "다운받을 파일명을 입력하세요!", BUFSIZE);
         }
-        else if(!strcmp(command, "put"))
+        else if (!strcmp(command, "put"))
         {
-            if(fname != NULL)
+            if (fname != NULL)
             {
                 write(clnt_sock, "put 명령 실행", BUFSIZE);
             }
-            else 
+            else
                 write(clnt_sock, "업로드할 파일명을 입력하세요!", BUFSIZE);
         }
         else
@@ -137,14 +145,6 @@ void *clnt_connection(void *arg)
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
     return 0;
-}
-
-void send_message(char *message, int len)
-{
-    // pthread_mutex_lock(&mutx); // 필요 x!
-    for (int i = 0; i < clnt_number; i++)
-        write(clnt_socks[i], message, len);
-    // pthread_mutex_unlock(&mutx); // 필요 x!
 }
 
 void error_handling(char *message)
