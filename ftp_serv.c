@@ -6,9 +6,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 #define BUFSIZE 100
+#define MAXSIZE 30
 
 void *clnt_connection(void *arg);
 void error_handling(char *message);
@@ -60,74 +62,66 @@ void *clnt_connection(void *arg)
 {
     int clnt_sock = (int)arg;
     int str_len = 0;
-    char clnt_msg[BUFSIZE];
+    char ftp_cmd[MAXSIZE];
+    char ftp_arg[BUFSIZE];
     // char serv_msg[BUFSIZE];
     char buf[BUFSIZE];
-    char command[BUFSIZE];
-    char *fname;
-    char tmp_name[20];
+    char tmp_name[MAXSIZE];
+    bool hash = true;
 
     FILE *fp;
 
-    while ((str_len = read(clnt_sock, clnt_msg, sizeof(clnt_msg))) != 0)
-    {
-        // 초기화
-        strcpy(command, "");
-        fname = NULL;
-        sprintf(tmp_name, ".txt%d", clnt_sock);
+    sprintf(tmp_name, ".txt%d", clnt_sock);
 
-        // 명령어와 인수 분리
-        strcpy(command, strtok(clnt_msg, " "));
-        fname = strtok(NULL, " ");
+    while ((str_len = read(clnt_sock, ftp_cmd, sizeof(ftp_cmd))) != 0)
+    {
         // cd, ls, pwd, *hash 구현 예정
-        if (!strcmp(command, "ls"))
+        if (!strcmp(ftp_cmd, "ls")) // ls 명령 구현
         {
-            // if(fname == NULL)
-            // {
             sprintf(buf, "ls>%s", tmp_name);
             system(buf);
+
             fp = fopen(tmp_name, "r");
 
-            write(clnt_sock, "[파일 목록]", BUFSIZE);
-            write(clnt_sock, "=====================", BUFSIZE);
+            write(clnt_sock, "[파일 목록]\n", BUFSIZE);
+            write(clnt_sock, "=====================\n", BUFSIZE);
             while (1)
             {
                 strcpy(buf, "");
                 fscanf(fp, "%[^\n]\n", buf);
                 if (!strcmp(buf, ""))
                     break;
+                sprintf(buf, "%s\n", buf);
 
                 write(clnt_sock, buf, BUFSIZE);
             }
-            write(clnt_sock, "=====================", BUFSIZE);
+            write(clnt_sock, "=====================\n", BUFSIZE);
+            write(clnt_sock, "", 1);
+
             fclose(fp);
-            // remove(tmp_name);
-            
-            // }
-            // else
-            //     write(clnt_sock, "ls 명령에는 인수를 줄 수 없습니다!", BUFSIZE);
+            remove(tmp_name);
         }
-        else if (!strcmp(command, "get"))
+        else if (!strcmp(ftp_cmd, "get")) // get 명령 구현
         {
-            if (fname != NULL)
+            read(clnt_sock, ftp_arg, BUFSIZE);
+            if ((fp = fopen("test.txt", "r")) == NULL)
             {
-                write(clnt_sock, "get 명령 실행", BUFSIZE);
+                write(clnt_sock, "200 error : file not found.\n", BUFSIZE);
+                write(clnt_sock, "", 1);
+                continue;
             }
             else
-                write(clnt_sock, "다운받을 파일명을 입력하세요!", BUFSIZE);
-        }
-        else if (!strcmp(command, "put"))
-        {
-            if (fname != NULL)
             {
-                write(clnt_sock, "put 명령 실행", BUFSIZE);
+                write(clnt_sock, "get 명령 실행\n", BUFSIZE);
+                write(clnt_sock, "", 1);
             }
-            else
-                write(clnt_sock, "업로드할 파일명을 입력하세요!", BUFSIZE);
         }
-        else
+        else if (!strcmp(ftp_cmd, "put"))
         {
-            write(clnt_sock, "잘못된 명령", BUFSIZE);
+            read(clnt_sock, ftp_arg, BUFSIZE);
+
+            write(clnt_sock, "put 명령 실행\n", BUFSIZE);
+            write(clnt_sock, "", 1);
         }
     }
 

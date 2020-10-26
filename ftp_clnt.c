@@ -6,20 +6,28 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 #define BUFSIZE 100
+#define MAXSIZE 30
 
 void *send_message(void *arg);
 void *recv_message(void *arg);
 void error_handling(char *message);
 
-int main(int argc, char* argv[])
+void sock_read(int sock, void *buf, size_t size);
+
+int main(int argc, char *argv[])
 {
     int sock;
     struct sockaddr_in serv_addr;
-    pthread_t snd_thread, rcv_thread;
-    void *thread_result;
+
+    char message[BUFSIZE];
+    char buf[BUFSIZE];
+    char *ftp_cmd;
+    char *ftp_arg;
+
     if (argc != 3)
     {
         printf("Usage : <IP><port>\n");
@@ -34,49 +42,73 @@ int main(int argc, char* argv[])
     serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
     serv_addr.sin_port = htons(atoi(argv[2]));
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
-        error_handling("connect() error");
+        error_handling("100 error : server connection error");
 
     chdir("client_files");
 
-    pthread_create(&snd_thread, NULL, send_message, (void *)sock);
-    pthread_create(&rcv_thread, NULL, recv_message, (void *)sock);
-    pthread_join(snd_thread, &thread_result);
-    pthread_join(rcv_thread, &thread_result);
-    close(sock);
-    return 0;
-}
-
-void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
-{
-    int sock = (int)arg;
-    char message[BUFSIZE];
-    while (1)
+    while (true)
     {
-        // printf(" lsq: 종료\n");
+        memset(message, 0, BUFSIZE);
+
         scanf("%[^\n]", message);
         getchar();
+
         if (!strcmp(message, "q"))
         { /* 'q' 입력 시 종료 */
             close(sock);
             exit(0);
         }
-        write(sock, message, BUFSIZE);
-    }
-}
+        // printf("scanf 값 : %s\n", message); // 디버깅용 코드
+        ftp_cmd = strtok(message, " ");
 
-void *recv_message(void *arg) /* 메시지 수신 쓰레드 실행 함수 */
-{
-    int sock = (int)arg;
-    char message[BUFSIZE];
-    int str_len;
-    while (1)
-    {
-        str_len = read(sock, message, BUFSIZE);
-        if (str_len == -1)
-            return 1;
-        message[str_len - 1] = 0;
-        printf("%s\n", message);
+        if (ftp_cmd == NULL)
+            continue;
+
+        /* 클라이언트에서의 명령어별 예외처리 및 동작 */
+        if (!strcmp(ftp_cmd, "ls"))
+        {
+            if(strtok(NULL, " ") != NULL)
+                printf("ls 명령어는 명령 인수를 사용할 수 없습니다!\n");
+            else
+            {
+                write(sock, ftp_cmd, sizeof(ftp_cmd));
+                sock_read(sock, buf, BUFSIZE);
+            }
+        }
+        else if (!strcmp(ftp_cmd, "get"))
+        {
+            ftp_arg = strtok(NULL, " ");
+            if(ftp_arg == NULL)
+                printf("다운받을 파일명을 입력하세요!.\n");
+            else
+            {
+                write(sock, ftp_cmd, sizeof(ftp_cmd));
+                write(sock, ftp_arg, BUFSIZE);
+                sock_read(sock, buf, BUFSIZE);
+            }
+        }
+        else if (!strcmp(ftp_cmd, "put"))
+        {
+            ftp_arg = strtok(NULL, " ");
+            if(ftp_arg == NULL)
+                printf("업로드할 파일명을 입력하세요!.\n");
+            else
+            {
+                write(sock, ftp_cmd, sizeof(ftp_cmd));
+                write(sock, ftp_arg, BUFSIZE);
+                sock_read(sock, buf, BUFSIZE);
+            }
+        }
+        else
+        {
+            printf("지원하지 않는 명령어를 입력하였습니다. 다시 입력하세요!\n");
+        }
+
     }
+
+
+    close(sock);
+    return 0;
 }
 
 void error_handling(char *message)
@@ -84,4 +116,16 @@ void error_handling(char *message)
     fputs(message, stderr);
     fputc('\n', stderr);
     exit(1);
+}
+
+void sock_read(int sock, void *buf, size_t size)
+{
+    while (true)
+    {
+        read(sock, buf, BUFSIZE);
+
+        if (!strcmp(buf, ""))
+            break;
+        printf("%s", buf);
+    }
 }
