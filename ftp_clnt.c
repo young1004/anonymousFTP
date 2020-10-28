@@ -13,7 +13,7 @@
 #include <pthread.h>
 
 #define BUFSIZE 100
-#define MAXSIZE 30
+#define MAXSIZE 50
 
 void error_handling(char *message);
 
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
                 read(sock, &size, sizeof(int));
 
-                if(!size) // size가 0이면
+                if (!size) // size가 0이면
                     printf("200 error : file not found.\n");
                 else
                 {
@@ -107,9 +107,8 @@ int main(int argc, char *argv[])
                     write(fd, file_data, size);
 
                     free(file_data);
-			        close(fd);
+                    close(fd);
                 }
-                
             }
         }
         else if (!strcmp(ftp_cmd, "put"))
