@@ -92,8 +92,6 @@ int main(int argc, char *argv[])
                 printf("다운받을 파일명을 입력하세요!.\n");
             else
             {
-                // printf("cmd : %s\n", ftp_cmd);
-                // printf("arg : %s\n", ftp_arg);
                 write(sock, ftp_cmd, MAXSIZE);
                 write(sock, ftp_arg, BUFSIZE);
 
@@ -117,16 +115,33 @@ int main(int argc, char *argv[])
         else if (!strcmp(ftp_cmd, "put"))
         {
             ftp_arg = strtok(NULL, " ");
+
             if (ftp_arg == NULL)
                 printf("업로드할 파일명을 입력하세요!.\n");
-            else if (false) // 클라이언트에 업로드할 파일이 없을 시 처리 구문
-            {
-            }
             else
             {
+                stat(ftp_arg, &file_info);
+                fd = open(ftp_arg, O_RDONLY);
+                size = file_info.st_size;
+
                 write(sock, ftp_cmd, MAXSIZE);
-                write(sock, ftp_arg, BUFSIZE);
-                sock_read(sock);
+
+                if (fd == -1) // 파일이 없을때
+                {
+                    size = 0;
+                    printf("업로드할 파일이 존재하지 않습니다.\n");
+                    write(sock, &size, sizeof(int));
+                }
+                else // 파일 존재 시
+                {
+                    write(sock, &size, sizeof(int));
+                    write(sock, ftp_arg, BUFSIZE);
+                    sendfile(sock, fd, NULL, size);
+                }
+
+                // write(sock, ftp_cmd, MAXSIZE);
+                // write(sock, ftp_arg, BUFSIZE);
+                // sock_read(sock);
             }
         }
         else

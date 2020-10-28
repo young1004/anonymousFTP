@@ -95,6 +95,7 @@ void *clnt_connection(void *arg)
     int str_len = 0;
 
     struct stat file_info;
+    char *file_data;
     int fd;
     int size = 0;
 
@@ -108,7 +109,7 @@ void *clnt_connection(void *arg)
         // cd, ls, pwd, *hash 구현 예정
         if (!strcmp(ftp_cmd, "ls")) // ls 명령 구현
         {
-            printf("ls 명령 실행.\n");
+            // printf("ls 명령 실행.\n");
             sprintf(buf, "ls>%s", tmp_name);
             system(buf);
 
@@ -116,9 +117,9 @@ void *clnt_connection(void *arg)
         }
         else if (!strcmp(ftp_cmd, "get")) // get 명령 구현
         {
-            printf("get 명령 실행.\n");
+            // printf("get 명령 실행.\n");
             read(clnt_sock, ftp_arg, BUFSIZE);
-            printf("파일이름 : %s\n", ftp_arg);
+            // printf("파일이름 : %s\n", ftp_arg);
 
             stat(ftp_arg, &file_info);
 			fd = open(ftp_arg, O_RDONLY);
@@ -128,8 +129,6 @@ void *clnt_connection(void *arg)
             {
                 size = 0;
                 write(clnt_sock, &size, sizeof(int));
-                // write(clnt_sock, "200 error : file not found.\n", BUFSIZE);
-                // end_write(clnt_sock);
             }
             else // 파일 존재 시
             {
@@ -139,11 +138,25 @@ void *clnt_connection(void *arg)
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
-            printf("put 명령 실행.\n");
-            read(clnt_sock, ftp_arg, BUFSIZE);
+            // printf("put 명령 실행.\n");
+            read(clnt_sock, &size, sizeof(int));
 
-            write(clnt_sock, "put 명령 실행\n", BUFSIZE);
-            end_write(clnt_sock);
+            if(!size) // 클라이언트로부터 받은 파일 크기가 0인경우
+            {
+                printf("클라이언트가 파일 전송에 실패했습니다!.\n");
+                continue;
+            }
+            else
+            {
+                read(clnt_sock, ftp_arg, BUFSIZE);
+                file_data = malloc(size);
+                read(clnt_sock, file_data, size);
+                fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
+                write(fd, file_data, size);
+
+                free(file_data);
+                close(fd);
+            }
         }
     }
 
