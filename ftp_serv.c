@@ -23,8 +23,8 @@ void error_handling(char *message);
 void end_write(int sock);
 
 void ls_func(int sock, char *filename);
-void get_func(int sock, char *filename);
-void put_func(int sock, char *filename);
+// void get_func(int sock, char *filename);
+// void put_func(int sock, char *filename);
 
 void get_now_time(struct tm *nt);
 void write_log(char *message, char *logdir, bool flag);
@@ -187,6 +187,7 @@ void *clnt_connection(void *arg)
             else
             {
                 read(clnt_sock, ftp_arg, BUFSIZE);
+
                 file_data = malloc(size);
                 read(clnt_sock, file_data, size);
                 fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
@@ -258,17 +259,17 @@ void ls_func(int sock, char *filename)
  * @param   sock 파일을 전송할 클라언트 소켓 번호
  * @param   filename 전송할 파일의 이름
  */
-void get_func(int sock, char *filename)
-{
-}
+// void get_func(int sock, char *filename)
+// {
+// }
 
 /** 클라이언트의 요청을 받아 클라이언트로부터 파일을 전송받는 함수
  * @param   sock 파일을 전송받을 클라언트 소켓 번호
  * @param   filename 전송받을 파일의 이름
  */
-void put_func(int sock, char *filename)
-{
-}
+// void put_func(int sock, char *filename)
+// {
+// }
 
 /** 메시지를 받아 서버의 로그를 기록하는 함수
  * @param message 기록할 로그 메시지 문자열

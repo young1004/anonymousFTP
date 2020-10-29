@@ -16,6 +16,8 @@
 #define MAXSIZE 50
 
 void error_handling(char *message);
+void get_func(int sock, char *ftp_arg);
+void put_func(int sock, char *ftp_arg);
 
 void sock_read(int sock);
 
@@ -30,10 +32,10 @@ int main(int argc, char *argv[])
     char *ftp_arg;
     int str_len = 0;
 
-    struct stat file_info;
-    char *file_data;
-    int fd;
-    int size = 0;
+    // struct stat file_info;
+    // char *file_data;
+    // int fd;
+    // int size = 0;
     // FILE *fp;
 
     if (argc != 3)
@@ -65,6 +67,7 @@ int main(int argc, char *argv[])
 
         if (!strcmp(message, "q"))
         { /* 'q' 입력 시 종료 */
+            printf("서버와의 연결을 종료합니다.\n");
             close(sock);
             exit(0);
         }
@@ -95,53 +98,14 @@ int main(int argc, char *argv[])
                 write(sock, ftp_cmd, MAXSIZE);
                 write(sock, ftp_arg, BUFSIZE);
 
-                read(sock, &size, sizeof(int));
-
-                if (!size) // size가 0이면
-                    printf("200 error : file not found.\n");
-                else
-                {
-                    file_data = malloc(size);
-                    read(sock, file_data, size);
-                    fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
-                    write(fd, file_data, size);
-
-                    free(file_data);
-                    close(fd);
-                }
+                get_func(sock, ftp_arg);
             }
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
             ftp_arg = strtok(NULL, " ");
 
-            if (ftp_arg == NULL)
-                printf("업로드할 파일명을 입력하세요!.\n");
-            else
-            {
-                stat(ftp_arg, &file_info);
-                fd = open(ftp_arg, O_RDONLY);
-                size = file_info.st_size;
-
-                write(sock, ftp_cmd, MAXSIZE);
-
-                if (fd == -1) // 파일이 없을때
-                {
-                    size = 0;
-                    printf("업로드할 파일이 존재하지 않습니다.\n");
-                    write(sock, &size, sizeof(int));
-                }
-                else // 파일 존재 시
-                {
-                    write(sock, &size, sizeof(int));
-                    write(sock, ftp_arg, BUFSIZE);
-                    sendfile(sock, fd, NULL, size);
-                }
-
-                // write(sock, ftp_cmd, MAXSIZE);
-                // write(sock, ftp_arg, BUFSIZE);
-                // sock_read(sock);
-            }
+            put_func(sock, ftp_arg);
         }
         else
         {
@@ -160,6 +124,81 @@ void error_handling(char *message)
     fputs(message, stderr);
     fputc('\n', stderr);
     exit(1);
+}
+
+/** 서버가 보낸 파일 관련 데이터를 처리하는 함수
+ * @param   sock 서버의 소켓 번호
+ * @param   ftp_arg 서버로부터 전송을 요청한 파일의 이름
+ */
+void get_func(int sock, char *ftp_arg)
+{
+    int size = 0;
+    int fd;
+    char *file_data;
+
+    read(sock, &size, sizeof(int));
+
+    if (!size) // size가 0이면
+        printf("200 error : file not found.\n");
+    else
+    {
+        file_data = malloc(size);
+        read(sock, file_data, size);
+        int file_no = 1;
+        char get_file_name[BUFSIZE];
+
+        strcpy(get_file_name, ftp_arg);
+
+        while (true) // 동일명 파일 다운 처리
+        {
+            fd = open(get_file_name, O_CREAT | O_EXCL | O_WRONLY, 0666);
+            if (fd == -1)
+                sprintf(get_file_name, "%s_%d", ftp_arg, file_no);
+            else
+                break;
+            file_no++;
+        }
+
+        write(fd, file_data, size);
+
+        free(file_data);
+        close(fd);
+    }
+}
+
+/** 서버로 보낼 파일 관련 데이터를 처리하는 함수
+ * @param   sock 파일을 전송할 서버의 소켓 번호
+ * @param   ftp_arg 전송할 파일의 이름
+ */
+void put_func(int sock, char *ftp_arg)
+{
+    int size = 0;
+    int fd;
+    struct stat file_info;
+
+    if (ftp_arg == NULL)
+        printf("업로드할 파일명을 입력하세요!.\n");
+    else
+    {
+        stat(ftp_arg, &file_info);
+        fd = open(ftp_arg, O_RDONLY);
+        size = file_info.st_size;
+
+        write(sock, "put", MAXSIZE);
+
+        if (fd == -1) // 파일이 없을때
+        {
+            size = 0;
+            printf("업로드할 파일이 존재하지 않습니다.\n");
+            write(sock, &size, sizeof(int));
+        }
+        else // 파일 존재 시
+        {
+            write(sock, &size, sizeof(int));
+            write(sock, ftp_arg, BUFSIZE);
+            sendfile(sock, fd, NULL, size);
+        }
+    }
 }
 
 /** 서버의 전송이 끝날때까지 서버로부터 메시지를 읽는 함수
