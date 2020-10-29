@@ -13,7 +13,7 @@
 #include <pthread.h>
 
 #define BUFSIZE 100
-#define MAXSIZE 50
+#define MAXSIZE 150
 
 void error_handling(char *message);
 void get_func(int sock, char *ftp_arg);
@@ -31,12 +31,6 @@ int main(int argc, char *argv[])
     char *ftp_cmd;
     char *ftp_arg;
     int str_len = 0;
-
-    // struct stat file_info;
-    // char *file_data;
-    // int fd;
-    // int size = 0;
-    // FILE *fp;
 
     if (argc != 3)
     {
@@ -146,14 +140,24 @@ void get_func(int sock, char *ftp_arg)
         read(sock, file_data, size);
         int file_no = 1;
         char get_file_name[BUFSIZE];
+        char *filename;
+        char *ext_file;
 
         strcpy(get_file_name, ftp_arg);
+        
 
         while (true) // 동일명 파일 다운 처리
         {
             fd = open(get_file_name, O_CREAT | O_EXCL | O_WRONLY, 0666);
             if (fd == -1)
-                sprintf(get_file_name, "%s_%d", ftp_arg, file_no);
+            {
+                filename = strtok(ftp_arg, ".");
+                ext_file = strtok(NULL, ".");
+                if (ext_file != NULL)
+                    sprintf(get_file_name, "%s_%d.%s", filename, file_no, ext_file);
+                else if(ext_file == NULL)
+                    sprintf(get_file_name, "%s_%d", filename, file_no);
+            }
             else
                 break;
             file_no++;

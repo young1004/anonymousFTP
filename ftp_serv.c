@@ -13,9 +13,10 @@
 #include <pthread.h>
 
 #define BUFSIZE 100
-#define MAXSIZE 50
+#define MAXSIZE 150
 #define MAXUSERS 10
 #define IPSIZE 20
+#define LGDIR "/home/mylinux/anonymous_FTP/server_logs"
 
 void *clnt_connection(void *arg);
 void error_handling(char *message);
@@ -23,9 +24,10 @@ void error_handling(char *message);
 void end_write(int sock);
 
 void ls_func(int sock, char *filename);
-// void get_func(int sock, char *filename);
-// void put_func(int sock, char *filename);
+void get_func(int sock);
+void put_func(int sock);
 
+void get_ipaddr(int sock, char *buf);
 void get_now_time(struct tm *nt);
 void write_log(char *message, char *logdir, bool flag);
 
@@ -99,29 +101,13 @@ void *clnt_connection(void *arg)
     char tmp_name[MAXSIZE];
     int str_len = 0;
 
-    // get, put 명령어 사용을 위한 변수들(sendfile)
-    struct stat file_info;
-    char *file_data;
-    int fd;
-    int size;
-
-    // bool hash = true;
-    // FILE *fp;
-
     // log 파일 작성을 위한 변수들
-    struct sockaddr_in sockAddr;
     char clnt_ip[IPSIZE] = {0};
     char log_dir[MAXSIZE];
-    char log_msg[200];
+    char log_msg[400];
 
-    sprintf(log_dir, "../server_logs");
-
-    /* log 파일을 위한 client ip 주소 구하는 부분 */
-    size = sizeof(sockAddr);
-    memset(&sockAddr, 0, size);
-    getpeername(clnt_sock, (struct sockaddr *)&sockAddr, &size);
-
-    strcpy(clnt_ip, inet_ntoa(sockAddr.sin_addr));
+    sprintf(log_dir, LGDIR);
+    get_ipaddr(clnt_sock, clnt_ip);
     // printf("%s\n", clnt_ip);
 
     sprintf(tmp_name, ".txt%d", clnt_sock);
@@ -145,64 +131,24 @@ void *clnt_connection(void *arg)
         }
         else if (!strcmp(ftp_cmd, "get")) // get 명령 구현
         {
-            // printf("get 명령 실행.\n");
             sprintf(log_msg, "client [%d] use [get] command, ip : %s\n", clnt_sock, clnt_ip);
             write_log(log_msg, log_dir, true);
 
-            read(clnt_sock, ftp_arg, BUFSIZE);
-            // printf("파일이름 : %s\n", ftp_arg);
-
-            stat(ftp_arg, &file_info);
-            fd = open(ftp_arg, O_RDONLY);
-            size = file_info.st_size;
-
-            if (fd == -1) // 파일이 없을때
-            {
-                size = 0;
-                sprintf(log_msg, "client [%d] file [get] failed, ip : %s\n", clnt_sock, clnt_ip);
-                write_log(log_msg, log_dir, true);
-
-                write(clnt_sock, &size, sizeof(int));
-            }
-            else // 파일 존재 시
-            {
-                write(clnt_sock, &size, sizeof(int));
-                sendfile(clnt_sock, fd, NULL, size);
-            }
+            get_func(clnt_sock);
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
             // printf("put 명령 실행.\n");
-            sprintf(log_msg, "client [%d] use [put] command, ip : %s", clnt_sock, clnt_ip);
+            sprintf(log_msg, "client [%d] use [put] command, ip : %s\n", clnt_sock, clnt_ip);
             write_log(log_msg, log_dir, true);
-            read(clnt_sock, &size, sizeof(int));
-
-            if (!size) // 클라이언트로부터 받은 파일 크기가 0인경우
-            {
-                printf("클라이언트가 파일 전송에 실패했습니다!.\n");
-                sprintf(log_msg, "client [%d] file [put] failed, ip : %s", clnt_sock, clnt_ip);
-                write_log(log_msg, log_dir, true);
-                continue;
-            }
-            else
-            {
-                read(clnt_sock, ftp_arg, BUFSIZE);
-
-                file_data = malloc(size);
-                read(clnt_sock, file_data, size);
-                fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
-                write(fd, file_data, size);
-
-                free(file_data);
-                close(fd);
-            }
+            put_func(clnt_sock);
         }
     }
 
     pthread_mutex_lock(&mutx);
     for (int i = 0; i < clnt_number; i++)
     { /* 클라이언트 연결 종료 시 */
-        sprintf(log_msg, "client [%d] disconnected , ip : %s", clnt_sock, clnt_ip);
+        sprintf(log_msg, "client [%d] disconnected , ip : %s\n", clnt_sock, clnt_ip);
         write_log(log_msg, log_dir, false);
         if (clnt_sock == clnt_socks[i])
         {
@@ -257,19 +203,85 @@ void ls_func(int sock, char *filename)
 
 /** 클라이언트의 요청을 받아 서버의 파일을 전송하는 함수
  * @param   sock 파일을 전송할 클라언트 소켓 번호
- * @param   filename 전송할 파일의 이름
  */
-// void get_func(int sock, char *filename)
-// {
-// }
+void get_func(int sock)
+{
+    struct stat file_info;
+    int fd;
+    int size;
+
+    char buf[BUFSIZE];
+
+    char clnt_ip[IPSIZE] = {0};
+    char log_dir[MAXSIZE];
+    char log_msg[400];
+
+    sprintf(log_dir, LGDIR);
+    get_ipaddr(sock, clnt_ip);
+
+    read(sock, buf, BUFSIZE);
+
+    stat(buf, &file_info);
+    fd = open(buf, O_RDONLY);
+    size = file_info.st_size;
+
+    if (fd == -1) // 파일이 없을때
+    {
+        printf("요청하는 파일이 없습니다. 파일 전송에 실패하였습니다.\n");
+        size = 0;
+        sprintf(log_msg, "client [%d] file [get] failed, ip : %s\n", sock, clnt_ip);
+        write_log(log_msg, log_dir, true);
+
+        write(sock, &size, sizeof(int));
+    }
+    else // 파일 존재 시
+    {
+        printf("파일을 전송합니다.\n");
+        write(sock, &size, sizeof(int));
+        sendfile(sock, fd, NULL, size);
+    }
+}
 
 /** 클라이언트의 요청을 받아 클라이언트로부터 파일을 전송받는 함수
  * @param   sock 파일을 전송받을 클라언트 소켓 번호
- * @param   filename 전송받을 파일의 이름
  */
-// void put_func(int sock, char *filename)
-// {
-// }
+void put_func(int sock)
+{
+    int fd;
+    int size;
+    char *file_data;
+
+    char ftp_arg[BUFSIZE];
+
+    char clnt_ip[IPSIZE] = {0};
+    char log_dir[MAXSIZE];
+    char log_msg[400];
+
+    sprintf(log_dir, LGDIR);
+    get_ipaddr(sock, clnt_ip);
+
+    read(sock, &size, sizeof(int));
+
+    if (!size) // 클라이언트로부터 받은 파일 크기가 0인경우
+    {
+        printf("클라이언트가 파일 전송에 실패했습니다!.\n");
+        sprintf(log_msg, "client [%d] file [put] failed, ip : %s\n", sock, clnt_ip);
+        write_log(log_msg, log_dir, true);
+    }
+    else
+    {
+        printf("클라이언트로부터 파일을 받았습니다.\n");
+        read(sock, ftp_arg, BUFSIZE);
+
+        file_data = malloc(size);
+        read(sock, file_data, size);
+        fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
+        write(fd, file_data, size);
+
+        free(file_data);
+        close(fd);
+    }
+}
 
 /** 메시지를 받아 서버의 로그를 기록하는 함수
  * @param message 기록할 로그 메시지 문자열
@@ -280,7 +292,7 @@ void write_log(char *message, char *logdir, bool flag)
 {
     FILE *log_file;
     char log_dir_name[MAXSIZE];
-    char log_file_name[MAXSIZE];
+    char log_file_name[400];
     struct tm *log_time = (struct tm *)malloc(sizeof(struct tm));
 
     get_now_time(log_time);
@@ -300,6 +312,22 @@ void write_log(char *message, char *logdir, bool flag)
 
     if (flag)
         pthread_mutex_unlock(&mutx);
+}
+
+/** 입력받은 소켓의 ip 주소를 문자열에 저장해주는 함수
+ * @param   sock ip 주소를 알고싶은 소켓 번호
+ * @param   buf ip 주소를 저장할 문자 배열의 시작 주소
+ */
+void get_ipaddr(int sock, char *buf)
+{
+    struct sockaddr_in sockAddr;
+    int size;
+
+    size = sizeof(sockAddr);
+    memset(&sockAddr, 0, size);
+    getpeername(sock, (struct sockaddr *)&sockAddr, &size);
+
+    strcpy(buf, inet_ntoa(sockAddr.sin_addr));
 }
 
 /** 연결 시간에 대한 정보를 리턴하는 함수
