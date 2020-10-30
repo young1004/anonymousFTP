@@ -160,7 +160,6 @@ void *clnt_connection(void *arg)
 
             ls_func(clnt_sock, tmp_name); // ls 명령 실행용 함수
 
-
             put_func(clnt_sock);
         }
     }

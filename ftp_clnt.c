@@ -89,18 +89,26 @@ int main(int argc, char *argv[])
         }
         else if (!strcmp(ftp_cmd, "get"))
         {
-            ftp_arg = strtok(NULL, " ");
-            if (ftp_arg == NULL)
-                printf( RED "다운받을 파일명을 입력하세요!.\n" RESET_COLOR);
-            else
+            memset(buf, 0, BUFSIZE);
+            
+            write(sock, ftp_cmd, MAXSIZE);
+            sock_read(sock);
+
+            printf( YELLO "다운받을 파일명 : " RESET_COLOR);
+            while (true)
             {
-                write(sock, ftp_cmd, MAXSIZE);
-                write(sock, ftp_arg, BUFSIZE);
+                scanf("%[^\n]", buf);
+                getchar();
 
-                sock_read(sock);
-
-                get_func(sock, ftp_arg);
+                if (!strcmp("", buf))
+                    printf(RED "다운받을 파일명을 입력하세요!.\n" RESET_COLOR);
+                else
+                    break;
+                
             }
+
+            write(sock, buf, BUFSIZE);
+            get_func(sock, buf);
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
