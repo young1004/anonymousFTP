@@ -284,3 +284,7 @@
 [2020.10.30 20:18:8] client [4] disconnected , ip : 127.0.0.1
 [2020.10.30 20:18:9] client [4] access. client ip : 127.0.0.1
 [2020.10.30 20:18:10] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:32:47] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:32:48] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:32:49] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:32:53] client [4] disconnected , ip : 127.0.0.1
