@@ -247,6 +247,11 @@ void get_func(int sock)
 
     read(sock, buf, BUFSIZE);
 
+    pthread_mutex_lock(&mutx);
+    strcpy(mutx_lists[list_number++], buf);
+    pthread_mutex_unlock(&mutx);
+
+    pthread_mutex_lock(&file_mutex[get_mutx_no(buf)]);
     stat(buf, &file_info);
     fd = open(buf, O_RDONLY);
     size = file_info.st_size;
@@ -259,27 +264,24 @@ void get_func(int sock)
         write_log(log_msg, log_dir, true);
 
         write(sock, &size, sizeof(int));
+        pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
     }
     else // 파일 존재 시
     {
-        pthread_mutex_lock(&mutx);
-        strcpy(mutx_lists[list_number++], buf);
-        pthread_mutex_unlock(&mutx);
-
-        pthread_mutex_lock(&file_mutex[get_mutx_no(buf)]);
-        sleep(10);
+        sleep(10); //mutex test용 코드
         printf("파일을 전송합니다.\n");
         write(sock, &size, sizeof(int));
         sendfile(sock, fd, NULL, size);
+        close(fd);
         pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
 
         pthread_mutex_lock(&mutx);
-        for(int i = 0; i < MAXUSERS; i++)
+        for (int i = 0; i < list_number; i++)
         {
             if (!strcmp(mutx_lists[i], buf))
             {
-                for(; i < list_number - 1; i++)
-                    strcpy(mutx_lists[i], mutx_lists[i+1]);
+                for (; i < list_number - 1; i++)
+                    strcpy(mutx_lists[i], mutx_lists[i + 1]);
 
                 break;
             }
@@ -319,15 +321,20 @@ void put_func(int sock)
     }
     else
     {
-        printf("클라이언트로부터 파일을 받았습니다.\n");
         read(sock, ftp_arg, BUFSIZE);
+
+        pthread_mutex_lock(&mutx);
+        strcpy(mutx_lists[list_number++], ftp_arg);
+        pthread_mutex_unlock(&mutx);
 
         file_data = malloc(size);
         read(sock, file_data, size);
+        pthread_mutex_lock(&file_mutex[get_mutx_no(ftp_arg)]);
+        sleep(10); //mutex test용 코드
 
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
 
-        if(fd == -1)
+        if (fd == -1)
         {
             sprintf(buf, "%s250 : File Existed\n%s", RED, RESET_COLOR);
             write(sock, buf, BUFSIZE);
@@ -341,7 +348,7 @@ void put_func(int sock)
             stat(ftp_arg, &file_info);
             put_size = file_info.st_size;
 
-            if(size == put_size)
+            if (size == put_size)
             {
                 printf("파일을 정상적으로 전송받았습니다!\n");
                 write(sock, "파일이 정상적으로 전송되었습니다!\n", BUFSIZE);
@@ -349,15 +356,31 @@ void put_func(int sock)
             }
             else
             {
-                printf( RED "비정상적인 파일 업로드!\n" RESET_COLOR);
+                printf(RED "비정상적인 파일 업로드!\n" RESET_COLOR);
                 sprintf(buf, "%s파일이 정상적으로 전송되지 않았습니다!\n%s", RED, RESET_COLOR);
                 end_write(sock);
             }
-            
         }
 
         free(file_data);
         close(fd);
+        pthread_mutex_unlock(&file_mutex[get_mutx_no(ftp_arg)]);
+
+        pthread_mutex_lock(&mutx);
+        for(int i = 0; i < list_number; i++)
+        {
+            if (!strcmp(mutx_lists[i], buf))
+            {
+                for(; i < list_number - 1; i++)
+                    strcpy(mutx_lists[i], mutx_lists[i+1]);
+
+                break;
+            }
+        }
+        list_number--;
+        pthread_mutex_unlock(&mutx);
+
+
     }
 }
 

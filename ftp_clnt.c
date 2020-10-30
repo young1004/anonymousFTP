@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
     while (true)
     {
         memset(message, 0, BUFSIZE);
-
-        printf( YELLO "명령어 입력 (ls : 파일 목록 | get : 파일 다운로드 | put : 파일 업로드 ) : " RESET_COLOR);
+        printf( YELLO "명령어 :( q : 종료 | ls : 파일 목록 | get : 파일 다운로드 | put : 파일 업로드 )\n" RESET_COLOR);
+        printf( YELLO "명령어 입력 : " RESET_COLOR);
         scanf("%[^\n]", message);
         getchar();
 
@@ -213,12 +213,12 @@ void put_func(int sock)
 
     while (true)
     {
-        printf(YELLO "다운받을 파일명 : " RESET_COLOR);
+        printf(YELLO "업로드할 파일명 : " RESET_COLOR);
         scanf("%[^\n]", buf);
         getchar();
 
         if (!strcmp("", buf))
-            printf(RED "다운받을 파일명을 입력하세요!.\n" RESET_COLOR);
+            printf(RED "업로드할 파일명을 입력하세요!.\n" RESET_COLOR);
         else
             break;
     }
