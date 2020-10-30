@@ -70,3 +70,13 @@
 [2020.10.30 2:46:36] client [4] access. client ip : 127.0.0.1
 [2020.10.30 2:46:44] client [4] use [get] command, ip : 127.0.0.1
 [2020.10.30 2:46:51] client [4] use [put] command, ip : 127.0.0.1
+[2020.10.30 2:51:49] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 13:54:31] client [4] access. client ip : 127.0.0.1
+[2020.10.30 13:54:34] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 13:54:34] client [4] file [get] failed, ip : 127.0.0.1
+[2020.10.30 13:54:38] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 14:2:28] client [4] access. client ip : 127.0.0.1
+[2020.10.30 14:2:39] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 14:3:50] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 14:9:33] client [4] access. client ip : 127.0.0.1
+[2020.10.30 14:9:37] client [4] use [get] command, ip : 127.0.0.1

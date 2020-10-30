@@ -16,7 +16,11 @@
 #define MAXSIZE 150
 #define MAXUSERS 10
 #define IPSIZE 20
+
 #define LGDIR "/home/mylinux/anonymous_FTP/server_logs"
+#define RED "\x1b[31m"
+#define YELLO "\x1b[33m"
+#define RESET_COLOR "\x1b[0m"
 
 void *clnt_connection(void *arg);
 void error_handling(char *message);
@@ -33,6 +37,10 @@ void write_log(char *message, char *logdir, bool flag);
 
 int clnt_number = 0;
 int clnt_socks[MAXUSERS];
+
+char clnt_downs[MAXUSERS][BUFSIZE];
+char clnt_ups[MAXUSERS][BUFSIZE];
+
 pthread_mutex_t mutx;
 
 int main(int argc, char **argv)
@@ -134,6 +142,11 @@ void *clnt_connection(void *arg)
             sprintf(log_msg, "client [%d] use [get] command, ip : %s\n", clnt_sock, clnt_ip);
             write_log(log_msg, log_dir, true);
 
+            sprintf(buf, "ls>%s", tmp_name);
+            system(buf);
+
+            ls_func(clnt_sock, tmp_name); // ls 명령 실행용 함수
+
             get_func(clnt_sock);
         }
         else if (!strcmp(ftp_cmd, "put"))
@@ -141,6 +154,13 @@ void *clnt_connection(void *arg)
             // printf("put 명령 실행.\n");
             sprintf(log_msg, "client [%d] use [put] command, ip : %s\n", clnt_sock, clnt_ip);
             write_log(log_msg, log_dir, true);
+
+            sprintf(buf, "ls>%s", tmp_name);
+            system(buf);
+
+            ls_func(clnt_sock, tmp_name); // ls 명령 실행용 함수
+
+
             put_func(clnt_sock);
         }
     }

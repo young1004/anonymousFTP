@@ -15,6 +15,10 @@
 #define BUFSIZE 100
 #define MAXSIZE 150
 
+#define RED "\x1b[31m"
+#define YELLO "\x1b[33m"
+#define RESET_COLOR "\x1b[0m"
+
 void error_handling(char *message);
 void get_func(int sock, char *ftp_arg);
 void put_func(int sock, char *ftp_arg);
@@ -34,7 +38,7 @@ int main(int argc, char *argv[])
 
     if (argc != 3)
     {
-        printf("Usage : <IP><port>\n");
+        printf( RED "Usage : <IP><port>\n" RESET_COLOR);
         exit(1);
     }
 
@@ -56,6 +60,7 @@ int main(int argc, char *argv[])
     {
         memset(message, 0, BUFSIZE);
 
+        printf( YELLO "명령어 입력 (ls : 파일 목록 | get : 파일 다운로드 | put : 파일 업로드 ) : " RESET_COLOR);
         scanf("%[^\n]", message);
         getchar();
 
@@ -86,11 +91,13 @@ int main(int argc, char *argv[])
         {
             ftp_arg = strtok(NULL, " ");
             if (ftp_arg == NULL)
-                printf("다운받을 파일명을 입력하세요!.\n");
+                printf( RED "다운받을 파일명을 입력하세요!.\n" RESET_COLOR);
             else
             {
                 write(sock, ftp_cmd, MAXSIZE);
                 write(sock, ftp_arg, BUFSIZE);
+
+                sock_read(sock);
 
                 get_func(sock, ftp_arg);
             }
@@ -99,11 +106,13 @@ int main(int argc, char *argv[])
         {
             ftp_arg = strtok(NULL, " ");
 
+            sock_read(sock);
+
             put_func(sock, ftp_arg);
         }
         else
         {
-            printf("지원하지 않는 명령어를 입력하였습니다. 다시 입력하세요!\n");
+            printf( RED "지원하지 않는 명령어를 입력하였습니다. 다시 입력하세요!\n" RESET_COLOR);
         }
     }
     close(sock);
@@ -115,6 +124,7 @@ int main(int argc, char *argv[])
  */
 void error_handling(char *message)
 {
+    sprintf(message, RED "%s %s", message, RESET_COLOR);
     fputs(message, stderr);
     fputc('\n', stderr);
     exit(1);
@@ -133,7 +143,7 @@ void get_func(int sock, char *ftp_arg)
     read(sock, &size, sizeof(int));
 
     if (!size) // size가 0이면
-        printf("200 error : file not found.\n");
+        printf( RED "200 error : file not found.\n" RESET_COLOR);
     else
     {
         file_data = malloc(size);
@@ -144,7 +154,6 @@ void get_func(int sock, char *ftp_arg)
         char *ext_file;
 
         strcpy(get_file_name, ftp_arg);
-        
 
         while (true) // 동일명 파일 다운 처리
         {
@@ -155,7 +164,7 @@ void get_func(int sock, char *ftp_arg)
                 ext_file = strtok(NULL, ".");
                 if (ext_file != NULL)
                     sprintf(get_file_name, "%s_%d.%s", filename, file_no, ext_file);
-                else if(ext_file == NULL)
+                else if (ext_file == NULL)
                     sprintf(get_file_name, "%s_%d", filename, file_no);
             }
             else
@@ -181,7 +190,7 @@ void put_func(int sock, char *ftp_arg)
     struct stat file_info;
 
     if (ftp_arg == NULL)
-        printf("업로드할 파일명을 입력하세요!.\n");
+        printf( RED "업로드할 파일명을 입력하세요!.\n" RESET_COLOR);
     else
     {
         stat(ftp_arg, &file_info);
@@ -193,7 +202,7 @@ void put_func(int sock, char *ftp_arg)
         if (fd == -1) // 파일이 없을때
         {
             size = 0;
-            printf("업로드할 파일이 존재하지 않습니다.\n");
+            printf( RED "업로드할 파일이 존재하지 않습니다.\n" RESET_COLOR);
             write(sock, &size, sizeof(int));
         }
         else // 파일 존재 시
