@@ -94,7 +94,7 @@ int main(int argc, char **argv)
             pthread_mutex_lock(&mutx);
             clnt_socks[clnt_number++] = clnt_sock;
             pthread_mutex_unlock(&mutx);
-            pthread_create(&thread, NULL, clnt_connection, (void *)clnt_sock);
+            pthread_create(&thread, NULL, clnt_connection, (void *)&clnt_sock);
             printf("new client access. client IP : %s \n", inet_ntoa(clnt_addr.sin_addr));
         }
     }
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 void *clnt_connection(void *arg)
 {
     // 클라이언트 별 스레드 동작을 위한 변수들
-    int clnt_sock = (int)arg;
+    int clnt_sock = *(int*)arg;
     char ftp_cmd[MAXSIZE];
     char ftp_arg[BUFSIZE];
     char buf[BUFSIZE];
@@ -237,6 +237,7 @@ void get_func(int sock)
     int size;
 
     char buf[BUFSIZE];
+    char file_buf[BUFSIZE];
 
     char clnt_ip[IPSIZE] = {0};
     char log_dir[MAXSIZE];
@@ -268,10 +269,23 @@ void get_func(int sock)
     }
     else // 파일 존재 시
     {
-        sleep(10); //mutex test용 코드
+        ssize_t str_len;
+
+        // sleep(10); //mutex test용 코드
         printf("파일을 전송합니다.\n");
         write(sock, &size, sizeof(int));
-        sendfile(sock, fd, NULL, size);
+
+        while (0 < (str_len = read(fd, file_buf, BUFSIZE - 2)))
+        {
+            printf("strlen값 : %ld\n", str_len);
+            file_buf[str_len]  = '\0';
+            printf("%s", file_buf);
+            write(sock, file_buf, BUFSIZE);
+            memset(file_buf, 0, BUFSIZE);
+        }
+        end_write(sock);
+
+        // sendfile(sock, fd, NULL, size);
         close(fd);
         pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
 
@@ -330,7 +344,7 @@ void put_func(int sock)
         file_data = malloc(size);
         read(sock, file_data, size);
         pthread_mutex_lock(&file_mutex[get_mutx_no(ftp_arg)]);
-        sleep(10); //mutex test용 코드
+        // sleep(10); //mutex test용 코드
 
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
 

@@ -201,3 +201,86 @@
 [2020.10.30 17:30:39] client [5] disconnected , ip : 127.0.0.1
 [2020.10.30 17:30:39] client [5] disconnected , ip : 127.0.0.1
 [2020.10.30 17:30:41] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:18:26] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:18:30] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:20:52] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:21:0] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:21:2] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:23:14] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:23:16] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:23:17] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:23:28] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:26:7] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:26:9] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:28:33] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:28:35] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:28:35] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:33:41] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:33:43] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:33:44] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:35:55] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:35:56] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:35:57] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:37:51] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:37:53] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:37:54] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:40:9] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:40:10] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:40:12] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:41:52] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:41:54] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:41:55] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:42:43] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:42:44] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:42:46] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:44:32] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:44:35] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:44:36] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:45:5] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:45:7] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:45:8] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:46:29] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:46:31] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:46:32] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:47:49] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:47:53] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:52:48] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:52:50] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:52:51] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:53:39] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:53:40] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:53:42] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:54:16] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 19:54:17] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:54:19] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:57:19] client [4] access. client ip : 127.0.0.1
+[2020.10.30 19:57:23] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 19:57:32] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:2:22] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:2:23] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:4:25] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:4:26] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:4:27] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:4:31] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:7:43] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:7:43] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:8:58] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:9:0] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:9:0] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:9:2] client [4] file [get] failed, ip : 127.0.0.1
+[2020.10.30 20:9:4] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:9:53] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:9:54] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:9:56] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:11:56] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:11:57] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:11:59] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:12:33] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:12:34] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:12:36] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:13:44] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:13:46] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:13:47] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.30 20:18:8] client [4] disconnected , ip : 127.0.0.1
+[2020.10.30 20:18:9] client [4] access. client ip : 127.0.0.1
+[2020.10.30 20:18:10] client [4] use [get] command, ip : 127.0.0.1

@@ -143,7 +143,8 @@ void get_func(int sock, char *ftp_arg)
     struct stat file_info;
     int size = 0;
     int fd;
-    char *file_data;
+    char buf[BUFSIZE];
+    // char *file_data;
 
     read(sock, &size, sizeof(int));
 
@@ -151,8 +152,8 @@ void get_func(int sock, char *ftp_arg)
         printf( RED "200 error : file not found.\n" RESET_COLOR);
     else
     {
-        file_data = malloc(size);
-        read(sock, file_data, size);
+        // file_data = malloc(size);
+        // read(sock, file_data, size);
         int file_no = 1;
         int down_size;
         char get_file_name[BUFSIZE];
@@ -161,13 +162,14 @@ void get_func(int sock, char *ftp_arg)
 
         strcpy(get_file_name, ftp_arg);
 
+        filename = strtok(ftp_arg, ".");
+        ext_file = strtok(NULL, ".");
+
         while (true) // 동일명 파일 다운 처리
         {
-            fd = open(get_file_name, O_CREAT | O_EXCL | O_WRONLY, 0666);
+            fd = open(get_file_name, O_CREAT | O_EXCL | O_WRONLY, 0664);
             if (fd == -1)
-            {
-                filename = strtok(ftp_arg, ".");
-                ext_file = strtok(NULL, ".");
+            {  
                 if (ext_file != NULL)
                     sprintf(get_file_name, "%s_%d.%s", filename, file_no, ext_file);
                 else if (ext_file == NULL)
@@ -178,7 +180,17 @@ void get_func(int sock, char *ftp_arg)
             file_no++;
         }
 
-        write(fd, file_data, size);
+        while(true)
+        {
+            read(sock, buf, BUFSIZE);
+            printf("%s", buf);
+            if(!strcmp(buf, ""))
+                break;
+            else
+                write(fd, buf, strlen(buf));  
+        }
+
+        // write(fd, file_data, size);
         stat(get_file_name, &file_info);
         down_size = file_info.st_size;
         if(size == down_size)
@@ -192,7 +204,6 @@ void get_func(int sock, char *ftp_arg)
             printf( RED "다시 다운받아 주세요!\n" RESET_COLOR);
         }
 
-        free(file_data);
         close(fd);
     }
 }

@@ -1,6 +1,6 @@
-get get get
-qwert1234 android studio
-
-qwerty1234qwerty4321zxcvb1234zxcv432
-asdf1234asdf4321zxcv6543asdf1234
-테스트파일 내용 변경
+[2020.10.28 23:23:54] client [4] access. client ip : 127.0.0.1
+[2020.10.28 23:23:56] client [4] use [ls] command, ip : 127.0.0.1
+[2020.10.28 23:23:58] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.28 23:23:58] client [4] file [get] failed, ip : 127.0.0.1
+[2020.10.28 23:24:2] client [4] use [get] command, ip : 127.0.0.1
+[2020.10.28 23:24:14] client [4] disconnected , ip : 127.0.0.1
