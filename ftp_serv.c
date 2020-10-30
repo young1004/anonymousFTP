@@ -30,6 +30,7 @@ void end_write(int sock);
 void ls_func(int sock, char *filename);
 void get_func(int sock);
 void put_func(int sock);
+int get_mutx_no(char *filename);
 
 void get_ipaddr(int sock, char *buf);
 void get_now_time(struct tm *nt);
@@ -38,10 +39,11 @@ void write_log(char *message, char *logdir, bool flag);
 int clnt_number = 0;
 int clnt_socks[MAXUSERS];
 
-char clnt_downs[MAXUSERS][BUFSIZE];
-char clnt_ups[MAXUSERS][BUFSIZE];
+int list_number = 0;
+char mutx_lists[MAXUSERS][BUFSIZE];
 
 pthread_mutex_t mutx;
+pthread_mutex_t file_mutex[MAXUSERS];
 
 int main(int argc, char **argv)
 {
@@ -58,6 +60,10 @@ int main(int argc, char **argv)
     }
     if (pthread_mutex_init(&mutx, NULL))
         error_handling("mutex init error");
+    for (int i = 0; i < MAXUSERS; i++)
+        if(pthread_mutex_init(&file_mutex[i], NULL))
+            error_handling("mutex init error");
+    
     serv_sock = socket(PF_INET, SOCK_STREAM, 0);
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -173,6 +179,7 @@ void *clnt_connection(void *arg)
         {
             for (; i < clnt_number - 1; i++)
                 clnt_socks[i] = clnt_socks[i + 1];
+                
             break;
         }
     }
@@ -255,9 +262,30 @@ void get_func(int sock)
     }
     else // 파일 존재 시
     {
+        pthread_mutex_lock(&mutx);
+        strcpy(mutx_lists[list_number++], buf);
+        pthread_mutex_unlock(&mutx);
+
+        pthread_mutex_lock(&file_mutex[get_mutx_no(buf)]);
+        sleep(10);
         printf("파일을 전송합니다.\n");
         write(sock, &size, sizeof(int));
         sendfile(sock, fd, NULL, size);
+        pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
+
+        pthread_mutex_lock(&mutx);
+        for(int i = 0; i < MAXUSERS; i++)
+        {
+            if (!strcmp(mutx_lists[i], buf))
+            {
+                for(; i < list_number - 1; i++)
+                    strcpy(mutx_lists[i], mutx_lists[i+1]);
+
+                break;
+            }
+        }
+        list_number--;
+        pthread_mutex_unlock(&mutx);
     }
 }
 
@@ -378,6 +406,19 @@ void get_ipaddr(int sock, char *buf)
     getpeername(sock, (struct sockaddr *)&sockAddr, &size);
 
     strcpy(buf, inet_ntoa(sockAddr.sin_addr));
+}
+
+/** mutex lock을 걸 mutex 배열의 인덱스를 반환하는 함수
+ * @param   filename mutex lock으로 잠굴 파일의 이름
+ * @return  mutex lock을 사용할 mutex 배열 인덱스값
+ */
+int get_mutx_no(char *filename)
+{
+    for(int i = 0; i < list_number; i++)
+    {
+        if(!strcmp(mutx_lists[i], filename))
+            return i;
+    }
 }
 
 /** 연결 시간에 대한 정보를 리턴하는 함수
