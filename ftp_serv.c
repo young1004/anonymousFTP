@@ -275,17 +275,14 @@ void get_func(int sock)
         printf("파일을 전송합니다.\n");
         write(sock, &size, sizeof(int));
 
-        while (0 < (str_len = read(fd, file_buf, BUFSIZE - 2)))
+        while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
         {
-            printf("strlen값 : %ld\n", str_len);
             file_buf[str_len]  = '\0';
-            printf("%s", file_buf);
             write(sock, file_buf, BUFSIZE);
             memset(file_buf, 0, BUFSIZE);
         }
         end_write(sock);
 
-        // sendfile(sock, fd, NULL, size);
         close(fd);
         pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
 

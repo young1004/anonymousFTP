@@ -183,14 +183,12 @@ void get_func(int sock, char *ftp_arg)
         while(true)
         {
             read(sock, buf, BUFSIZE);
-            printf("%s", buf);
             if(!strcmp(buf, ""))
                 break;
             else
                 write(fd, buf, strlen(buf));  
         }
 
-        // write(fd, file_data, size);
         stat(get_file_name, &file_info);
         down_size = file_info.st_size;
         if(size == down_size)
