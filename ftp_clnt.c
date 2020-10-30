@@ -21,7 +21,7 @@
 
 void error_handling(char *message);
 void get_func(int sock, char *ftp_arg);
-void put_func(int sock, char *ftp_arg);
+void put_func(int sock);
 
 void sock_read(int sock);
 
@@ -94,9 +94,9 @@ int main(int argc, char *argv[])
             write(sock, ftp_cmd, MAXSIZE);
             sock_read(sock);
 
-            printf( YELLO "다운받을 파일명 : " RESET_COLOR);
             while (true)
             {
+                printf( YELLO "다운받을 파일명 : " RESET_COLOR);
                 scanf("%[^\n]", buf);
                 getchar();
 
@@ -112,11 +112,7 @@ int main(int argc, char *argv[])
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
-            ftp_arg = strtok(NULL, " ");
-
-            sock_read(sock);
-
-            put_func(sock, ftp_arg);
+            put_func(sock);
         }
         else
         {
@@ -144,6 +140,7 @@ void error_handling(char *message)
  */
 void get_func(int sock, char *ftp_arg)
 {
+    struct stat file_info;
     int size = 0;
     int fd;
     char *file_data;
@@ -157,6 +154,7 @@ void get_func(int sock, char *ftp_arg)
         file_data = malloc(size);
         read(sock, file_data, size);
         int file_no = 1;
+        int down_size;
         char get_file_name[BUFSIZE];
         char *filename;
         char *ext_file;
@@ -181,6 +179,18 @@ void get_func(int sock, char *ftp_arg)
         }
 
         write(fd, file_data, size);
+        stat(get_file_name, &file_info);
+        down_size = file_info.st_size;
+        if(size == down_size)
+        {
+            printf("파일 다운로드 완료!\n");
+            printf("다운로드된 파일명 : %s\n", get_file_name);
+        }
+        else
+        {
+            printf( RED "파일이 정상적으로 다운로드되지 않았습니다!\n" RESET_COLOR);
+            printf( RED "다시 다운받아 주세요!\n" RESET_COLOR);
+        }
 
         free(file_data);
         close(fd);
@@ -189,36 +199,47 @@ void get_func(int sock, char *ftp_arg)
 
 /** 서버로 보낼 파일 관련 데이터를 처리하는 함수
  * @param   sock 파일을 전송할 서버의 소켓 번호
- * @param   ftp_arg 전송할 파일의 이름
  */
-void put_func(int sock, char *ftp_arg)
+void put_func(int sock)
 {
     int size = 0;
     int fd;
     struct stat file_info;
+    char buf[BUFSIZE];
 
-    if (ftp_arg == NULL)
-        printf( RED "업로드할 파일명을 입력하세요!.\n" RESET_COLOR);
-    else
+    write(sock, "put", MAXSIZE);
+
+    sock_read(sock);
+
+    while (true)
     {
-        stat(ftp_arg, &file_info);
-        fd = open(ftp_arg, O_RDONLY);
-        size = file_info.st_size;
+        printf(YELLO "다운받을 파일명 : " RESET_COLOR);
+        scanf("%[^\n]", buf);
+        getchar();
 
-        write(sock, "put", MAXSIZE);
+        if (!strcmp("", buf))
+            printf(RED "다운받을 파일명을 입력하세요!.\n" RESET_COLOR);
+        else
+            break;
+    }
 
-        if (fd == -1) // 파일이 없을때
-        {
-            size = 0;
-            printf( RED "업로드할 파일이 존재하지 않습니다.\n" RESET_COLOR);
-            write(sock, &size, sizeof(int));
-        }
-        else // 파일 존재 시
-        {
-            write(sock, &size, sizeof(int));
-            write(sock, ftp_arg, BUFSIZE);
-            sendfile(sock, fd, NULL, size);
-        }
+    stat(buf, &file_info);
+    fd = open(buf, O_RDONLY);
+    size = file_info.st_size;
+
+    if (fd == -1) // 파일이 없을때
+    {
+        size = 0;
+        printf(RED "업로드할 파일이 존재하지 않습니다.\n" RESET_COLOR);
+        write(sock, &size, sizeof(int));
+    }
+    else // 파일 존재 시
+    {
+        write(sock, &size, sizeof(int));
+        write(sock, buf, BUFSIZE);
+        sendfile(sock, fd, NULL, size);
+
+        sock_read(sock);
     }
 }
 

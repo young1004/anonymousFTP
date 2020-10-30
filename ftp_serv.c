@@ -201,7 +201,7 @@ void ls_func(int sock, char *filename)
 
     fp = fopen(filename, "r");
 
-    write(sock, "[파일 목록]\n", BUFSIZE);
+    write(sock, "[서버 파일 목록]\n", BUFSIZE);
     write(sock, "=====================\n", BUFSIZE);
     while (1)
     {
@@ -266,11 +266,13 @@ void get_func(int sock)
  */
 void put_func(int sock)
 {
+    struct stat file_info;
     int fd;
     int size;
     char *file_data;
 
     char ftp_arg[BUFSIZE];
+    char buf[BUFSIZE];
 
     char clnt_ip[IPSIZE] = {0};
     char log_dir[MAXSIZE];
@@ -294,8 +296,37 @@ void put_func(int sock)
 
         file_data = malloc(size);
         read(sock, file_data, size);
+
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
-        write(fd, file_data, size);
+
+        if(fd == -1)
+        {
+            sprintf(buf, "%s250 : File Existed\n%s", RED, RESET_COLOR);
+            write(sock, buf, BUFSIZE);
+            end_write(sock);
+        }
+        else
+        {
+            int put_size;
+            write(fd, file_data, size);
+
+            stat(ftp_arg, &file_info);
+            put_size = file_info.st_size;
+
+            if(size == put_size)
+            {
+                printf("파일을 정상적으로 전송받았습니다!\n");
+                write(sock, "파일이 정상적으로 전송되었습니다!\n", BUFSIZE);
+                end_write(sock);
+            }
+            else
+            {
+                printf( RED "비정상적인 파일 업로드!\n" RESET_COLOR);
+                sprintf(buf, "%s파일이 정상적으로 전송되지 않았습니다!\n%s", RED, RESET_COLOR);
+                end_write(sock);
+            }
+            
+        }
 
         free(file_data);
         close(fd);
