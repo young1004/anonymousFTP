@@ -323,16 +323,13 @@ void ls_read(int sock)
 {
     char buf[BUFSIZE];
     char clnt_buf[BUFSIZE];
-    char print_buf[BUFSIZE * 2 + 50];
 
     FILE *clnt_fp;
     FILE *serv_fp;
-    FILE *all_fp;
 
     system("ls>.temp");
     clnt_fp = fopen(".temp", "r");
     serv_fp = fopen(".serv", "w");
-    all_fp = fopen(".all", "w");
 
     while (true) // 서버로부터 온 ls 값 쓰기
     {
@@ -340,7 +337,6 @@ void ls_read(int sock)
 
         if (!strcmp(buf, "")) // 서버가 전송이 끝났음을 의미
             break;
-        // printf("%s", buf);
         fwrite(buf, sizeof(char), strlen(buf), serv_fp);
     }
     fclose(serv_fp);
@@ -348,11 +344,8 @@ void ls_read(int sock)
 
     fscanf(serv_fp, "%[^\n]\n", buf);
 
-    strcpy(clnt_buf, "[클라이언트 파일 목록]");
-    sprintf(print_buf, "%-30s %s\n", buf, clnt_buf);
-    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
-    sprintf(print_buf, "================================================\n");
-    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+    printf("%-30s %s\n", buf, "[클라이언트 파일 목록]");
+    printf("================================================\n");
 
     while (true)
     {
@@ -363,8 +356,7 @@ void ls_read(int sock)
         
         strcpy(clnt_buf, "");
         fscanf(clnt_fp, "%[^\n]\n", clnt_buf);
-        sprintf(print_buf, "%-24s %s\n", buf, clnt_buf);
-        fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+        printf("%-24s %s\n", buf, clnt_buf);
     }
 
     while (true)
@@ -373,31 +365,17 @@ void ls_read(int sock)
         fscanf(clnt_fp, "%[^\n]\n", clnt_buf);
         if (!strcmp(clnt_buf, ""))
             break;
-        sprintf(print_buf, "%-24s %s \n", ".", clnt_buf);
-        fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+        printf("%-24s %s \n", "", clnt_buf);
     }
 
-    sprintf(print_buf, "================================================\n");
-    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
-
-    fclose(all_fp);
-    all_fp = fopen(".all", "r");
-    while (true)
-    {
-        strcpy(print_buf, "");
-        fscanf(all_fp, "%[^\n]\n", print_buf);
-        if (!strcmp(print_buf, ""))
-            break;
-        printf("%s\n", print_buf);
-    }
+    printf("================================================\n");
     
 
     fclose(clnt_fp);
     fclose(serv_fp);
-    fclose(all_fp);
+
     remove(".temp");
     remove(".serv");
-    remove(".all");
 }
 
 /** 서버의 전송이 끝날때까지 서버로부터 메시지를 읽는 함수
