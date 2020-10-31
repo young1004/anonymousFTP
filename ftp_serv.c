@@ -210,7 +210,7 @@ void ls_func(int sock, char *filename)
     fp = fopen(filename, "r");
 
     write(sock, "[서버 파일 목록]\n", BUFSIZE);
-    write(sock, "=====================\n", BUFSIZE);
+    // write(sock, "=====================\n", BUFSIZE);
     while (1)
     {
         strcpy(buf, "");
@@ -221,7 +221,7 @@ void ls_func(int sock, char *filename)
 
         write(sock, buf, BUFSIZE);
     }
-    write(sock, "=====================\n", BUFSIZE);
+    // write(sock, "=====================\n", BUFSIZE);
     end_write(sock);
 
     fclose(fp);

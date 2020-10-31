@@ -22,6 +22,7 @@
 
 void error_handling(char *message);
 void end_write(int sock);
+void ls_read(int sock);
 void get_func(int sock, char *ftp_arg);
 void put_func(int sock);
 
@@ -88,7 +89,8 @@ int main(int argc, char *argv[])
             else
             {
                 write(sock, ftp_cmd, MAXSIZE);
-                sock_read(sock);
+                ls_read(sock);
+                // sock_read(sock);
             }
         }
         else if (!strcmp(ftp_cmd, "get"))
@@ -96,7 +98,8 @@ int main(int argc, char *argv[])
             memset(buf, 0, BUFSIZE);
             
             write(sock, ftp_cmd, MAXSIZE);
-            sock_read(sock);
+            ls_read(sock);
+            // sock_read(sock);
 
             while (true)
             {
@@ -130,10 +133,7 @@ int main(int argc, char *argv[])
                 hash_flag = true;
                 printf("진행률 보기 켬\n");
             }
-                
-            
         }
-        
         else
         {
             printf( RED "지원하지 않는 명령어를 입력하였습니다. 다시 입력하세요!\n" RESET_COLOR);
@@ -252,7 +252,9 @@ void put_func(int sock)
 
     write(sock, "put", MAXSIZE);
 
-    sock_read(sock); // ls 명령어값 받기
+    ls_read(sock);
+
+    // sock_read(sock); // ls 명령어값 받기
 
     while (true)
     {
@@ -312,6 +314,90 @@ void put_func(int sock)
             sock_read(sock);
         }
     }
+}
+
+/** 서버로부터 ls 명령값을 받아 서버와 클라이언트 모두의 파일을 출력하는 함수
+ * @param   sock 메시지를 읽을 서버의 소켓 번호
+ */
+void ls_read(int sock)
+{
+    char buf[BUFSIZE];
+    char clnt_buf[BUFSIZE];
+    char print_buf[BUFSIZE * 2 + 50];
+
+    FILE *clnt_fp;
+    FILE *serv_fp;
+    FILE *all_fp;
+
+    system("ls>.temp");
+    clnt_fp = fopen(".temp", "r");
+    serv_fp = fopen(".serv", "w");
+    all_fp = fopen(".all", "w");
+
+    while (true) // 서버로부터 온 ls 값 쓰기
+    {
+        read(sock, buf, BUFSIZE);
+
+        if (!strcmp(buf, "")) // 서버가 전송이 끝났음을 의미
+            break;
+        // printf("%s", buf);
+        fwrite(buf, sizeof(char), strlen(buf), serv_fp);
+    }
+    fclose(serv_fp);
+    serv_fp = fopen(".serv", "r");
+
+    fscanf(serv_fp, "%[^\n]\n", buf);
+
+    strcpy(clnt_buf, "[클라이언트 파일 목록]");
+    sprintf(print_buf, "%-30s %s\n", buf, clnt_buf);
+    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+    sprintf(print_buf, "================================================\n");
+    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+
+    while (true)
+    {
+        strcpy(buf, "");
+        fscanf(serv_fp, "%[^\n]\n", buf);
+        if (!strcmp(buf, ""))
+            break;
+        
+        strcpy(clnt_buf, "");
+        fscanf(clnt_fp, "%[^\n]\n", clnt_buf);
+        sprintf(print_buf, "%-24s %s\n", buf, clnt_buf);
+        fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+    }
+
+    while (true)
+    {
+        strcpy(clnt_buf, "");
+        fscanf(clnt_fp, "%[^\n]\n", clnt_buf);
+        if (!strcmp(clnt_buf, ""))
+            break;
+        sprintf(print_buf, "%-24s %s \n", ".", clnt_buf);
+        fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+    }
+
+    sprintf(print_buf, "================================================\n");
+    fwrite(print_buf, sizeof(char), strlen(print_buf), all_fp);
+
+    fclose(all_fp);
+    all_fp = fopen(".all", "r");
+    while (true)
+    {
+        strcpy(print_buf, "");
+        fscanf(all_fp, "%[^\n]\n", print_buf);
+        if (!strcmp(print_buf, ""))
+            break;
+        printf("%s\n", print_buf);
+    }
+    
+
+    fclose(clnt_fp);
+    fclose(serv_fp);
+    fclose(all_fp);
+    remove(".temp");
+    remove(".serv");
+    remove(".all");
 }
 
 /** 서버의 전송이 끝날때까지 서버로부터 메시지를 읽는 함수
