@@ -27,6 +27,8 @@ void put_func(int sock);
 
 void sock_read(int sock);
 
+bool hash_flag = true;
+
 int main(int argc, char *argv[])
 {
     int sock;
@@ -61,7 +63,7 @@ int main(int argc, char *argv[])
     while (true)
     {
         memset(message, 0, BUFSIZE);
-        printf( YELLO "명령어 :( q : 종료 | ls : 파일 목록 | get : 파일 다운로드 | put : 파일 업로드 )\n" RESET_COLOR);
+        printf( YELLO "명령어 :( q : 종료 | ls : 파일 목록 | get : 파일 다운로드 | put : 파일 업로드 | hash : 진행률 보기 )\n" RESET_COLOR);
         printf( YELLO "명령어 입력 : " RESET_COLOR);
         scanf("%[^\n]", message);
         getchar();
@@ -116,6 +118,22 @@ int main(int argc, char *argv[])
         {
             put_func(sock);
         }
+        else if (!strcmp(ftp_cmd, "hash"))
+        {
+            if(hash_flag)
+            {
+                hash_flag = false;
+                printf("진행률 보기 끔 \n");
+            }
+            else
+            {
+                hash_flag = true;
+                printf("진행률 보기 켬\n");
+            }
+                
+            
+        }
+        
         else
         {
             printf( RED "지원하지 않는 명령어를 입력하였습니다. 다시 입력하세요!\n" RESET_COLOR);
@@ -186,21 +204,29 @@ void get_func(int sock, char *ftp_arg)
                 break;
             file_no++;
         }
-
+        int get_size = 0;
         while(true)
         {
             read(sock, buf, BUFSIZE);
             if(!strcmp(buf, ""))
                 break;
             else
-                write(fd, buf, strlen(buf));  
+            {
+                write(fd, buf, strlen(buf));
+                get_size += strlen(buf);
+                if(hash_flag)
+                    printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
+                fflush(stdout);
+            }
         }
+        if(hash_flag)
+            printf("\n");
 
         stat(get_file_name, &file_info);
         down_size = file_info.st_size;
         if(size == down_size)
         {
-            printf("파일 다운로드 완료!\n");
+            printf( BLUE "파일 다운로드 완료!\n" RESET_COLOR);
             printf( BLUE "다운로드된 파일명 : %s\n %s", get_file_name, RESET_COLOR);
         }
         else
@@ -254,7 +280,7 @@ void put_func(int sock)
     {
         int flag;
 
-        ssize_t str_len;
+        int str_len;
 
         write(sock, &size, sizeof(int));
         write(sock, buf, BUFSIZE);
@@ -264,14 +290,23 @@ void put_func(int sock)
             printf( RED "250 : File Existed\n" RESET_COLOR);
         else
         {
-            printf(BLUE "파일을 전송합니다" RESET_COLOR);
+            printf(BLUE "파일을 전송합니다\n" RESET_COLOR);
+            int put_size = 0;
             while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
             {
                 file_buf[str_len] = '\0';
                 write(sock, file_buf, BUFSIZE);
+                put_size += strlen(file_buf);
+                if(hash_flag)
+                    printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
+                fflush(stdout);
+                usleep(250000);
                 memset(file_buf, 0, BUFSIZE);
             }
             end_write(sock);
+            if(hash_flag)
+                printf("\n");
+            
             close(fd);
             
             sock_read(sock);

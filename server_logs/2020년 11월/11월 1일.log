@@ -1,0 +1,33 @@
+[2020.11.1 0:4:55] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:4:57] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:5:10] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:7:10] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:7:11] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:7:20] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:7:33] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:9:42] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:9:44] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:9:45] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:10:3] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:12:20] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:12:22] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:12:24] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:12:29] client [4] file [put] failed, ip : 127.0.0.1
+[2020.11.1 0:12:38] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:14:11] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:14:13] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:14:15] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:14:27] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:14:44] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:15:6] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:15:13] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:15:25] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:15:42] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:15:58] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:16:0] client [4] file [get] failed, ip : 127.0.0.1
+[2020.11.1 0:16:4] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:16:18] client [4] disconnected , ip : 127.0.0.1
+[2020.11.1 0:17:15] client [4] access. client ip : 127.0.0.1
+[2020.11.1 0:17:16] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.1 0:17:26] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.1 0:17:33] client [4] disconnected , ip : 127.0.0.1

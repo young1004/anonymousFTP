@@ -159,7 +159,6 @@ void *clnt_connection(void *arg)
         }
         else if (!strcmp(ftp_cmd, "put"))
         {
-            // printf("put 명령 실행.\n");
             sprintf(log_msg, "client [%d] use [put] command, ip : %s\n", clnt_sock, clnt_ip);
             write_log(log_msg, log_dir, true);
 
@@ -271,19 +270,25 @@ void get_func(int sock)
     }
     else // 파일 존재 시
     {
-        ssize_t str_len;
+        int str_len;
 
         // sleep(10); //mutex test용 코드
         printf(BLUE "파일을 전송합니다.\n" RESET_COLOR);
         write(sock, &size, sizeof(int));
 
+        int get_size = 0;        
         while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
         {
             file_buf[str_len]  = '\0';
             write(sock, file_buf, BUFSIZE);
+            get_size += strlen(file_buf);
+            printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
+            fflush(stdout);
+            usleep(250000);
             memset(file_buf, 0, BUFSIZE);
         }
         end_write(sock);
+        printf("\n");
 
         close(fd);
         pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
@@ -347,27 +352,31 @@ void put_func(int sock)
 
         if (fd == -1) // 존재하는 파일은 받지 않음
         {
-            // sprintf(buf, "%s250 : File Existed\n%s", RED, RESET_COLOR);
-            // write(sock, buf, BUFSIZE);
             flag = 0;
             write(sock, &flag, sizeof(int));
-            // end_write(sock);
         }
         else
         {
             flag = 1;
             write(sock, &flag, sizeof(int));
 
+            printf("클라이언트가 파일을 전송합니다.\n");
+
+            int put_size = 0;
             while (true)
             {
                 read(sock, buf, BUFSIZE);
                 if (!strcmp(buf, ""))
                     break;
                 else
+                {
                     write(fd, buf, strlen(buf));
+                    put_size += strlen(buf);
+                    printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
+                    fflush(stdout);
+                }
             }
-
-            int put_size;
+            printf("\n");
 
             stat(ftp_arg, &file_info);
             put_size = file_info.st_size;
