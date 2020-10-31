@@ -18,8 +18,10 @@
 #define IPSIZE 20
 
 #define LGDIR "/home/mylinux/anonymous_FTP/server_logs"
+
 #define RED "\x1b[31m"
 #define YELLO "\x1b[33m"
+#define BLUE "\x1b[34m"
 #define RESET_COLOR "\x1b[0m"
 
 void *clnt_connection(void *arg);
@@ -272,7 +274,7 @@ void get_func(int sock)
         ssize_t str_len;
 
         // sleep(10); //mutex test용 코드
-        printf("파일을 전송합니다.\n");
+        printf(BLUE "파일을 전송합니다.\n" RESET_COLOR);
         write(sock, &size, sizeof(int));
 
         while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
@@ -310,7 +312,6 @@ void put_func(int sock)
     struct stat file_info;
     int fd;
     int size;
-    char *file_data;
 
     char ftp_arg[BUFSIZE];
     char buf[BUFSIZE];
@@ -326,7 +327,7 @@ void put_func(int sock)
 
     if (!size) // 클라이언트로부터 받은 파일 크기가 0인경우
     {
-        printf("클라이언트가 파일 전송에 실패했습니다!.\n");
+        printf( RED "클라이언트가 파일 전송에 실패했습니다!.\n" RESET_COLOR);
         sprintf(log_msg, "client [%d] file [put] failed, ip : %s\n", sock, clnt_ip);
         write_log(log_msg, log_dir, true);
     }
@@ -338,23 +339,35 @@ void put_func(int sock)
         strcpy(mutx_lists[list_number++], ftp_arg);
         pthread_mutex_unlock(&mutx);
 
-        file_data = malloc(size);
-        read(sock, file_data, size);
         pthread_mutex_lock(&file_mutex[get_mutx_no(ftp_arg)]);
         // sleep(10); //mutex test용 코드
 
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
+        int flag;
 
-        if (fd == -1)
+        if (fd == -1) // 존재하는 파일은 받지 않음
         {
-            sprintf(buf, "%s250 : File Existed\n%s", RED, RESET_COLOR);
-            write(sock, buf, BUFSIZE);
-            end_write(sock);
+            // sprintf(buf, "%s250 : File Existed\n%s", RED, RESET_COLOR);
+            // write(sock, buf, BUFSIZE);
+            flag = 0;
+            write(sock, &flag, sizeof(int));
+            // end_write(sock);
         }
         else
         {
+            flag = 1;
+            write(sock, &flag, sizeof(int));
+
+            while (true)
+            {
+                read(sock, buf, BUFSIZE);
+                if (!strcmp(buf, ""))
+                    break;
+                else
+                    write(fd, buf, strlen(buf));
+            }
+
             int put_size;
-            write(fd, file_data, size);
 
             stat(ftp_arg, &file_info);
             put_size = file_info.st_size;
@@ -362,18 +375,19 @@ void put_func(int sock)
             if (size == put_size)
             {
                 printf("파일을 정상적으로 전송받았습니다!\n");
-                write(sock, "파일이 정상적으로 전송되었습니다!\n", BUFSIZE);
+                sprintf(buf, "%s 파일이 정상적으로 전송되었습니다!\n%s", BLUE, RESET_COLOR);
+                write(sock, buf, BUFSIZE);
                 end_write(sock);
             }
             else
             {
-                printf(RED "비정상적인 파일 업로드!\n" RESET_COLOR);
+                printf(RED "파일 업로드중 오류가 발생했습니다!\n" RESET_COLOR);
                 sprintf(buf, "%s파일이 정상적으로 전송되지 않았습니다!\n%s", RED, RESET_COLOR);
+                write(sock, buf, BUFSIZE);
                 end_write(sock);
             }
         }
 
-        free(file_data);
         close(fd);
         pthread_mutex_unlock(&file_mutex[get_mutx_no(ftp_arg)]);
 

@@ -17,9 +17,11 @@
 
 #define RED "\x1b[31m"
 #define YELLO "\x1b[33m"
+#define BLUE "\x1b[34m"
 #define RESET_COLOR "\x1b[0m"
 
 void error_handling(char *message);
+void end_write(int sock);
 void get_func(int sock, char *ftp_arg);
 void put_func(int sock);
 
@@ -134,6 +136,14 @@ void error_handling(char *message)
     exit(1);
 }
 
+/** 서버에게 모든 메시지를 전송했을 때 호출하는 함수
+ * @param   sock 통신이 끝났음을 전송할 클라이언트 소켓 번호
+ */
+void end_write(int sock)
+{
+    write(sock, "", 1);
+}
+
 /** 서버가 보낸 파일 관련 데이터를 처리하는 함수
  * @param   sock 서버의 소켓 번호
  * @param   ftp_arg 서버로부터 전송을 요청한 파일의 이름
@@ -144,7 +154,6 @@ void get_func(int sock, char *ftp_arg)
     int size = 0;
     int fd;
     char buf[BUFSIZE];
-    // char *file_data;
 
     read(sock, &size, sizeof(int));
 
@@ -152,8 +161,6 @@ void get_func(int sock, char *ftp_arg)
         printf( RED "200 error : file not found.\n" RESET_COLOR);
     else
     {
-        // file_data = malloc(size);
-        // read(sock, file_data, size);
         int file_no = 1;
         int down_size;
         char get_file_name[BUFSIZE];
@@ -194,7 +201,7 @@ void get_func(int sock, char *ftp_arg)
         if(size == down_size)
         {
             printf("파일 다운로드 완료!\n");
-            printf("다운로드된 파일명 : %s\n", get_file_name);
+            printf( BLUE "다운로드된 파일명 : %s\n %s", get_file_name, RESET_COLOR);
         }
         else
         {
@@ -215,10 +222,11 @@ void put_func(int sock)
     int fd;
     struct stat file_info;
     char buf[BUFSIZE];
+    char file_buf[BUFSIZE];
 
     write(sock, "put", MAXSIZE);
 
-    sock_read(sock);
+    sock_read(sock); // ls 명령어값 받기
 
     while (true)
     {
@@ -244,11 +252,30 @@ void put_func(int sock)
     }
     else // 파일 존재 시
     {
+        int flag;
+
+        ssize_t str_len;
+
         write(sock, &size, sizeof(int));
         write(sock, buf, BUFSIZE);
-        sendfile(sock, fd, NULL, size);
 
-        sock_read(sock);
+        read(sock, &flag, sizeof(int));
+        if(!flag)
+            printf( RED "250 : File Existed\n" RESET_COLOR);
+        else
+        {
+            printf(BLUE "파일을 전송합니다" RESET_COLOR);
+            while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
+            {
+                file_buf[str_len] = '\0';
+                write(sock, file_buf, BUFSIZE);
+                memset(file_buf, 0, BUFSIZE);
+            }
+            end_write(sock);
+            close(fd);
+            
+            sock_read(sock);
+        }
     }
 }
 
