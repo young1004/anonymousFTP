@@ -332,7 +332,6 @@ void put_func(int sock)
     get_ipaddr(sock, clnt_ip);
 
     read(sock, &size, sizeof(int));
-    printf("size 진입!\n");
 
     if (!size) // 클라이언트로부터 받은 파일 크기가 0인경우
     {
@@ -343,7 +342,7 @@ void put_func(int sock)
     else
     {
         read(sock, ftp_arg, BUFSIZE);
-        
+
         pthread_mutex_lock(&mutx);
         strcpy(mutx_lists[list_number++], ftp_arg);
         pthread_mutex_unlock(&mutx);
@@ -351,7 +350,7 @@ void put_func(int sock)
         int mtx_no = get_mutx_no(ftp_arg);
 
         pthread_mutex_lock(&file_mutex[mtx_no]);
-        // sleep(10); //mutex test용 코드
+        sleep(2); //mutex test용 코드
 
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
         int flag;
