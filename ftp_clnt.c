@@ -173,12 +173,23 @@ void get_func(int sock, char *ftp_arg)
     int fd;
     char buf[BUFSIZE];
 
+    printf("파일 다운로드 대기중...");
+    fflush(stdout);
     read(sock, &size, sizeof(int));
 
+    printf("\r                             ");
+    fflush(stdout);
+
     if (!size) // size가 0이면
-        printf( RED "200 error : file not found.\n" RESET_COLOR);
+    {
+        printf( RED "\r200 error : file not found.\n" RESET_COLOR);
+        fflush(stdout);
+    }
     else
     {
+        printf("\r파일을 다운로드합니다\n");
+        fflush(stdout);
+
         int file_no = 1;
         int down_size;
         char get_file_name[BUFSIZE];
@@ -215,12 +226,24 @@ void get_func(int sock, char *ftp_arg)
                 write(fd, buf, strlen(buf));
                 get_size += strlen(buf);
                 if(hash_flag)
-                    printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
-                fflush(stdout);
+                {
+                    double per_cnt = (get_size / (double)size) * 100.0;
+                    printf("\r전송률 : %.2lf%%\n", per_cnt);
+                    fflush(stdout);
+                    printf("\r");
+                    for(int i = 0; i < (int)per_cnt / 10; i++)
+                    {
+                        printf("#");
+                        fflush(stdout);
+                    }
+                        
+                    printf("\x1b[A");
+                }
             }
         }
         if(hash_flag)
-            printf("\n");
+            printf("\n\n");
+        
 
         stat(get_file_name, &file_info);
         down_size = file_info.st_size;
@@ -286,13 +309,22 @@ void put_func(int sock)
 
         write(sock, &size, sizeof(int));
         write(sock, buf, BUFSIZE);
-
+        printf("파일 전송 대기중...");
+        fflush(stdout);
         read(sock, &flag, sizeof(int));
+        printf("\r                             ");
+        fflush(stdout);
+
         if(!flag)
-            printf( RED "250 : File Existed\n" RESET_COLOR);
+        {   
+            printf( RED "\r250 : File Existed\n" RESET_COLOR);
+            fflush(stdout);
+        }
         else
         {
-            printf(BLUE "파일을 전송합니다\n" RESET_COLOR);
+            printf(BLUE "\r파일을 전송합니다\n" RESET_COLOR);
+            fflush(stdout);
+
             int put_size = 0;
             while (0 < (str_len = read(fd, file_buf, BUFSIZE - 1)))
             {
@@ -300,14 +332,24 @@ void put_func(int sock)
                 write(sock, file_buf, BUFSIZE);
                 put_size += strlen(file_buf);
                 if(hash_flag)
-                    printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
-                fflush(stdout);
+                {
+                    double per_cnt = (put_size / (double)size) * 100.0;
+                    printf("\r전송률 : %.2lf%%\n", per_cnt);
+                    fflush(stdout);
+                    for(int i = 0; i < (int)per_cnt / 10; i++)
+                    {
+                        printf("#");
+                        fflush(stdout);
+                    }
+                        
+                    printf("\x1b[A");
+                }
                 usleep(250000);
                 memset(file_buf, 0, BUFSIZE);
             }
             end_write(sock);
             if(hash_flag)
-                printf("\n");
+                printf("\n\n");
             
             close(fd);
             
