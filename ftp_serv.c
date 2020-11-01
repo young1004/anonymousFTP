@@ -253,7 +253,9 @@ void get_func(int sock)
     strcpy(mutx_lists[list_number++], buf);
     pthread_mutex_unlock(&mutx);
 
-    pthread_mutex_lock(&file_mutex[get_mutx_no(buf)]);
+    int mtx_no = get_mutx_no(buf); 
+
+    pthread_mutex_lock(&file_mutex[mtx_no]);
     stat(buf, &file_info);
     fd = open(buf, O_RDONLY);
     size = file_info.st_size;
@@ -266,7 +268,7 @@ void get_func(int sock)
         write_log(log_msg, log_dir, true);
 
         write(sock, &size, sizeof(int));
-        pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
+        pthread_mutex_unlock(&file_mutex[mtx_no]);
     }
     else // 파일 존재 시
     {
@@ -281,17 +283,18 @@ void get_func(int sock)
         {
             file_buf[str_len]  = '\0';
             write(sock, file_buf, BUFSIZE);
-            get_size += strlen(file_buf);
-            printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
-            fflush(stdout);
+            // get_size += strlen(file_buf);
+            // printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
+            // fflush(stdout);
             usleep(250000);
             memset(file_buf, 0, BUFSIZE);
         }
         end_write(sock);
-        printf("\n");
+        // printf("\n");
+        printf( BLUE "파일 전송을 완료했습니다!\n");
 
         close(fd);
-        pthread_mutex_unlock(&file_mutex[get_mutx_no(buf)]);
+        pthread_mutex_unlock(&file_mutex[mtx_no]);
 
         pthread_mutex_lock(&mutx);
         for (int i = 0; i < list_number; i++)
@@ -329,6 +332,7 @@ void put_func(int sock)
     get_ipaddr(sock, clnt_ip);
 
     read(sock, &size, sizeof(int));
+    printf("size 진입!\n");
 
     if (!size) // 클라이언트로부터 받은 파일 크기가 0인경우
     {
@@ -339,12 +343,14 @@ void put_func(int sock)
     else
     {
         read(sock, ftp_arg, BUFSIZE);
-
+        
         pthread_mutex_lock(&mutx);
         strcpy(mutx_lists[list_number++], ftp_arg);
         pthread_mutex_unlock(&mutx);
 
-        pthread_mutex_lock(&file_mutex[get_mutx_no(ftp_arg)]);
+        int mtx_no = get_mutx_no(ftp_arg);
+
+        pthread_mutex_lock(&file_mutex[mtx_no]);
         // sleep(10); //mutex test용 코드
 
         fd = open(ftp_arg, O_CREAT | O_EXCL | O_WRONLY, 0666);
@@ -371,8 +377,8 @@ void put_func(int sock)
                 else
                 {
                     write(fd, buf, strlen(buf));
-                    put_size += strlen(buf);
-                    printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
+                    // put_size += strlen(buf);
+                    // printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
                     fflush(stdout);
                 }
             }
@@ -398,7 +404,7 @@ void put_func(int sock)
         }
 
         close(fd);
-        pthread_mutex_unlock(&file_mutex[get_mutx_no(ftp_arg)]);
+        pthread_mutex_unlock(&file_mutex[mtx_no]);
 
         pthread_mutex_lock(&mutx);
         for(int i = 0; i < list_number; i++)
