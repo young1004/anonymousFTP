@@ -1,0 +1,16 @@
+[2020.11.2 16:31:47] client [4] access. client ip : 127.0.0.1
+[2020.11.2 16:32:3] client [5] access. client ip : 127.0.0.1
+[2020.11.2 16:32:7] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:32:8] client [5] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:32:59] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:33:0] client [5] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:33:39] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.2 16:33:41] client [5] use [get] command, ip : 127.0.0.1
+[2020.11.2 16:34:8] client [5] disconnected , ip : 127.0.0.1
+[2020.11.2 16:34:8] client [5] disconnected , ip : 127.0.0.1
+[2020.11.2 16:34:8] client [4] disconnected , ip : 127.0.0.1
+[2020.11.2 16:37:42] client [4] access. client ip : 127.0.0.1
+[2020.11.2 16:37:45] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:37:51] client [4] use [put] command, ip : 127.0.0.1
+[2020.11.2 16:38:2] client [4] use [get] command, ip : 127.0.0.1
+[2020.11.2 16:38:14] client [4] disconnected , ip : 127.0.0.1
