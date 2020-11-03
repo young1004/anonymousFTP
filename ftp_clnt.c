@@ -65,10 +65,9 @@ int main(int argc, char *argv[])
         printf( RED "Usage : <IP><port>\n" RESET_COLOR);
         exit(1);
     }
-
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock == -1)
-        error_handling("socket() error");
+        error_handling("socket error");
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
@@ -167,8 +166,9 @@ int main(int argc, char *argv[])
  */
 void error_handling(char *message)
 {
-    sprintf(message, RED "%s %s", message, RESET_COLOR);
-    fputs(message, stderr);
+    char buf[MAXSIZE * 2];
+    sprintf(buf, "%s %s %s", RED, message, RESET_COLOR);
+    fputs(buf, stderr);
     fputc('\n', stderr);
     exit(1);
 }

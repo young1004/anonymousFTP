@@ -50,10 +50,11 @@ void end_write(int sock);
 void ls_func(int sock, char *filename);
 void get_func(int sock);
 void put_func(int sock);
-int get_mutx_no(char *filename);
 
+int get_mutx_no(char *filename);
 void get_ipaddr(int sock, char *buf);
 void get_now_time(struct tm *nt);
+
 void write_log(char *message, char *logdir, bool flag);
 
 int clnt_number = 0;
@@ -301,9 +302,6 @@ void get_func(int sock)
         {
             file_buf[str_len]  = '\0';
             write(sock, file_buf, BUFSIZE);
-            // get_size += strlen(file_buf);
-            // printf("전송률 : %.2lf%%\r", (get_size / (double)size) * 100.0);
-            // fflush(stdout);
             usleep(250000);
             memset(file_buf, 0, BUFSIZE);
         }
@@ -392,14 +390,8 @@ void put_func(int sock)
                 if (!strcmp(buf, ""))
                     break;
                 else
-                {
                     write(fd, buf, strlen(buf));
-                    // put_size += strlen(buf);
-                    // printf("전송률 : %.2lf%%\r", (put_size / (double)size) * 100.0);
-                    fflush(stdout);
-                }
             }
-            printf("\n");
 
             stat(ftp_arg, &file_info);
             put_size = file_info.st_size;
