@@ -272,7 +272,7 @@ void get_func(int sock)
     strcpy(mutx_lists[list_number++], buf);
     pthread_mutex_unlock(&mutx);
 
-    int mtx_no = get_mutx_no(buf); 
+    int mtx_no = get_mutx_no(buf);
 
     pthread_mutex_lock(&file_mutex[mtx_no]);
     stat(buf, &file_info);
