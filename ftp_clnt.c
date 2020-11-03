@@ -252,7 +252,7 @@ void get_func(int sock, char *ftp_arg)
                     printf("\r");
                     for(int i = 0; i < (int)per_cnt / 10; i++)
                     {
-                        printf("#");
+                        printf("###");
                         fflush(stdout);
                     }
                         
@@ -357,7 +357,7 @@ void put_func(int sock)
                     fflush(stdout);
                     for(int i = 0; i < (int)per_cnt / 10; i++)
                     {
-                        printf("#");
+                        printf("###");
                         fflush(stdout);
                     }
                         

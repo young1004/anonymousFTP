@@ -457,7 +457,7 @@ void write_log(char *message, char *logdir, bool flag)
 
     log_file = fopen(log_file_name, "a");
 
-    fprintf(log_file, "[%d.%d.%d %d:%d:%d] %s", log_time->tm_year, log_time->tm_mon, log_time->tm_mday, log_time->tm_hour, log_time->tm_min, log_time->tm_sec, message);
+    fprintf(log_file, "[%d.%d.%d %02d:%02d:%02d] %s", log_time->tm_year, log_time->tm_mon, log_time->tm_mday, log_time->tm_hour, log_time->tm_min, log_time->tm_sec, message);
     fclose(log_file);
 
     if (flag)
